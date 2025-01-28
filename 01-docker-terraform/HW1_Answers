@@ -1,0 +1,92 @@
+Question 1. Understanding docker first run
+Run docker with the python:3.12.8 image in an interactive mode, use the entrypoint bash.
+What's the version of pip in the image?
+root@5a14771c94b6:/# pip --version
+pip 24.3.1 from /usr/local/lib/python3.12/site-packages/pip (python 3.12)
+root@5a14771c94b6:/#
+Answer = 24.3.1
+
+Question 2. Understanding Docker networking and docker-compose
+Given the following docker-compose.yaml, what is the hostname and port that pgadmin should use to connect to the postgres database?
+Answer= postgres:5432
+
+Question 3. Trip Segmentation Count
+During the period of October 1st 2019 (inclusive) and November 1st 2019 (exclusive), how many trips, respectively, happened:
+
+Up to 1 mile
+In between 1 (exclusive) and 3 miles (inclusive),
+In between 3 (exclusive) and 7 miles (inclusive),
+In between 7 (exclusive) and 10 miles (inclusive),
+Over 10 miles
+
+root@localhost:ny_taxi> select count(lpep_pickup_datetime) from green_taxi_data where (lpep_pickup_datetime >= '2019-10-01' and lpep_dropoff_datetime <'2019-11-01') and Tr
+ ip_distance <= 1
++--------+
+| count  |
+|--------|
+| 104802 |
++--------+
+SELECT 1
+Time: 0.032s
+root@localhost:ny_taxi> select count(lpep_pickup_datetime) from green_taxi_data where (lpep_pickup_datetime >= '2019-10-01' and lpep_dropoff_datetime <'2019-11-01') and (T
+ rip_distance >1 and Trip_distance <=3)
++--------+
+| count  |
+|--------|
+| 198924 |
+root@localhost:ny_taxi> select count(lpep_pickup_datetime) from green_taxi_data where (lpep_pickup_datetime >= '2019-10-01' and lpep_dropoff_datetime <'2019-11-01') and (T
+ rip_distance >3 and Trip_distance <=7)
++--------+
+| count  |
+|--------|
+| 109603 |
+root@localhost:ny_taxi> select count(lpep_pickup_datetime) from green_taxi_data where (lpep_pickup_datetime >= '2019-10-01' and lpep_dropoff_datetime <'2019-11-01') and (T
+ rip_distance >7 and Trip_distance <=10)
++-------+
+| count |
+|-------|
+| 27678 |
++-------+
+root@localhost:ny_taxi> select count(lpep_pickup_datetime) from green_taxi_data where (lpep_pickup_datetime >= '2019-10-01' and lpep_dropoff_datetime <'2019-11-01') and (T
+ rip_distance >10)
++-------+
+| count |
+|-------|
+| 35189 |
++-------+
+Answer = 104,802; 198,924; 109,603; 27,678; 35,189
+Question 4. Longest trip for each day
+Which was the pick up day with the longest trip distance? Use the pick up time for your calculations.
+
+Tip: For every day, we only care about one single trip with the longest distance.
+select lpep_pickup_datetime from green_taxi_data where Trip_distance = (SELECT MAX(Trip_distance) FROM green_taxi_data)
++----------------------+
+| lpep_pickup_datetime |
+|----------------------|
+| 2019-10-31 23:23:41  |
++----------------------+
+Answer = 2019-10-31
+
+Question 5. Three biggest pickup zones
+Which were the top pickup locations with over 13,000 in total_amount (across all trips) for 2019-10-18?
+Consider only lpep_pickup_datetime when filtering by date.
+df_zone[df_zone['LocationID'].isin([74,75,166])]
+LocationID	Borough	Zone	service_zone
+73	74	Manhattan	East Harlem North	Boro Zone
+74	75	Manhattan	East Harlem South	Boro Zone
+165	166	Manhattan	Morningside Heights	Boro Zone
+Answer=East Harlem North, East Harlem South, Morningside Heights
+
+Question 6. Largest tip
+For the passengers picked up in October 2019 in the zone name "East Harlem North" which was the drop off zone that had the largest tip?
+df_zone[df_zone.LocationID == 132]
+LocationID	Borough	Zone	service_zone
+131	132	Queens	JFK Airport	Airports
+Answer JFK Airport
+
+Question 7. Terraform Workflow
+Which of the following sequences, respectively, describes the workflow for:
+Downloading the provider plugins and setting up backend,
+Generating proposed changes and auto-executing the plan
+Remove all resources managed by terraform`
+Answer - terraform init, terraform apply -auto-approve, terraform destroy
