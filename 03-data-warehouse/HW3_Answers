@@ -1,0 +1,4 @@
+Question 1: What is count of records for the 2024 Yellow Taxi Data?
+SQL:SELECT COUNT(*)  as count FROM `oval-heuristic-448403-g6.ytaxidataset.yellow_taxi`
+Answer 1: 20332093
+
