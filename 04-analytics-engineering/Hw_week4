@@ -1,0 +1,73 @@
+Question 1: Understanding dbt model resolution
+What does this .sql model compile to?
+
+select * 
+from {{ source('raw_nyc_tripdata', 'ext_green_taxi' ) }}
+
+#### Answer 1:select * from myproject.my_nyc_tripdata.ext_green_taxi
+
+
+{{ source('raw_nyc_tripdata', 'ext_green_taxi' ) }} tells dbt to refer to the ext_green_taxi table in the source raw_nyc_tripdata.
+Given the environment variables and the sources.yaml configuration, the source is located in the myproject BigQuery project 
+and the my_nyc_tripdata dataset.
+
+
+Question 2: dbt Variables & Dynamic Models
+Say you have to modify the following dbt_model (fct_recent_taxi_trips.sql) to enable Analytics Engineers to dynamically control the date range.
+
+In development, you want to process only the last 7 days of trips
+In production, you need to process the last 30 days for analytics
+select *
+from {{ ref('fact_taxi_trips') }}
+where pickup_datetime >= CURRENT_DATE - INTERVAL '30' DAY
+#### Answer 2: Update the WHERE clause to pickup_datetime >= 
+CURRENT_DATE - INTERVAL '{{ var("days_back", env_var("DAYS_BACK", "30")) }}' DAY
+
+
+
+Explanation:
+env_var('days_back', 30): The env_var function checks for an environment variable called days_back. If the environment variable is set, it will be used as the value for date_range_days. If not, it falls back to the default value of 30 days.
+
+var('days_back', ...): The var() function is used to resolve the variable. First, it checks for any command-line arguments passed with --vars. If no command-line argument is passed, it checks for the environment variable (via env_var). If neither is set, it uses the default value (30 in this case).
+
+Using Command-Line Argument (--vars): The command-line argument has the highest priority. You can run DBT like this:
+using command line arguments
+
+
+Question 3: dbt Data Lineage and Execution
+Select the option that does NOT apply for materializing fct_taxi_monthly_zone_revenue
+
+#### Answer 3:dbt run --select +models/core/dim_taxi_trips.sql+ --target prod
+Here's why:
+dbt run --select +models/core/dim_taxi_trips.sql+ --target prod: This command runs a specific model (dim_taxi_trips.sql) 
+along with its dependencies (due to the + syntax before and after the model name). This is selecting a specific model 
+and its upstream dependencies, but it is not targeting fct_taxi_monthly_zone_revenue directly, 
+nor is it a proper way to refer to the fct_taxi_monthly_zone_revenue model specifically. 
+Also, it’s targeting a model within the core directory that is unrelated to fct_taxi_monthly_zone_revenue, 
+making it the incorrect option in the context of your question.
+
+Question 4: dbt Macros and Jinja
+You decide to make a macro to wrap a logic around it:
+
+{% macro resolve_schema_for(model_type) -%}
+
+    {%- set target_env_var = 'DBT_BIGQUERY_TARGET_DATASET'  -%}
+    {%- set stging_env_var = 'DBT_BIGQUERY_STAGING_DATASET' -%}
+
+    {%- if model_type == 'core' -%} {{- env_var(target_env_var) -}}
+    {%- else -%}                    {{- env_var(stging_env_var, env_var(target_env_var)) -}}
+    {%- endif -%}
+
+{%- endmacro %}
+And use on your staging, dim_ and fact_ models as:
+
+{{ config(
+    schema=resolve_schema_for('core'), 
+) }}
+That all being said, regarding macro above, select all statements that are true to the models using it:
+#### Answer 4:
+When using core, it materializes in the dataset defined in DBT_BIGQUERY_TARGET_DATASET
+When using stg, it materializes in the dataset defined in DBT_BIGQUERY_STAGING_DATASET, or defaults to DBT_BIGQUERY_TARGET_DATASET
+When using staging, it materializes in the dataset defined in DBT_BIGQUERY_STAGING_DATASET, or defaults to DBT_BIGQUERY_TARGET_DATASET
+
+
